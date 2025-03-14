@@ -178,33 +178,33 @@ def generate_text_simple(model, idx, max_new_tokens, context_size):
     return idx
 
 
+if __name__ == "__main__":
+    tokenizer = tiktoken.get_encoding("gpt2")
 
-tokenizer = tiktoken.get_encoding("gpt2")
+    GPT_CONFIG_124M = {
+        "vocab_size": 50527,    # 词汇个数
+        "context_length": 1024, # sample的长度
+        "emb_dim": 768,         # 嵌入维度
+        "n_heads": 12,          # 注意力头数
+        "n_layers": 12,         # 层数
+        "drop_rate": 0.1,       # 权重丢失率
+        "qkv_bias": False       # Query-Key-Value偏执设置
+    }
 
-GPT_CONFIG_124M = {
-    "vocab_size": 50527,    # 词汇个数
-    "context_length": 1024, # sample的长度
-    "emb_dim": 768,         # 嵌入维度
-    "n_heads": 12,          # 注意力头数
-    "n_layers": 12,         # 层数
-    "drop_rate": 0.1,       # 权重丢失率
-    "qkv_bias": False       # Query-Key-Value偏执设置
-}
+    model = GPTModel(GPT_CONFIG_124M)
 
-model = GPTModel(GPT_CONFIG_124M)
+    start_context = "Hello, I am"
+    encoded = tokenizer.encode(start_context)
+    encoded_tensor = torch.tensor(encoded).unsqueeze(0)
 
-start_context = "Hello, I am"
-encoded = tokenizer.encode(start_context)
-encoded_tensor = torch.tensor(encoded).unsqueeze(0)
+    model.eval() # disable dropout
 
-model.eval() # disable dropout
+    out = generate_text_simple(
+        model=model,
+        idx=encoded_tensor, 
+        max_new_tokens=6, # 生成了6个token
+        context_size=GPT_CONFIG_124M["context_length"]
+    )
 
-out = generate_text_simple(
-    model=model,
-    idx=encoded_tensor, 
-    max_new_tokens=6, # 生成了6个token
-    context_size=GPT_CONFIG_124M["context_length"]
-)
-
-print("Output:", out)
-print("Output length:", len(out[0]))
+    print("Output:", out)
+    print("Output length:", len(out[0]))
